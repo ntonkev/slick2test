@@ -200,25 +200,28 @@ trait Tables {
     val systemstatusid: Column[Int] = column[Int]("systemstatusid")
   }
   /** Collection-like TableQuery object for table User */
-  lazy val User =  new TableQuery(tag => new User(tag))
-
+  lazy val User = new TableQuery(tag => new User(tag))
+  
   /** Entity class storing rows of table Userinrole
+   *  @param userinroleid Database column userinroleid PrimaryKey
    *  @param userid Database column userid 
    *  @param roleid Database column roleid 
    *  @param transactionid Database column transactionid 
    *  @param systemstatusid Database column systemstatusid  */
-  case class UserinroleRow(userid: String, roleid: String, transactionid: Option[Int], systemstatusid: Int)
+  case class UserinroleRow(userinroleid: Int, userid: String, roleid: String, transactionid: Option[Int], systemstatusid: Int)
   /** GetResult implicit for fetching UserinroleRow objects using plain SQL queries */
-  implicit def GetResultUserinroleRow(implicit e0: GR[String], e1: GR[Option[Int]], e2: GR[Int]): GR[UserinroleRow] = GR{
+  implicit def GetResultUserinroleRow(implicit e0: GR[Int], e1: GR[String], e2: GR[Option[Int]]): GR[UserinroleRow] = GR{
     prs => import prs._
-    UserinroleRow.tupled((<<[String], <<[String], <<?[Int], <<[Int]))
+    UserinroleRow.tupled((<<[Int], <<[String], <<[String], <<?[Int], <<[Int]))
   }
   /** Table description of table userinrole. Objects of this class serve as prototypes for rows in queries. */
   class Userinrole(tag: Tag) extends Table[UserinroleRow](tag, Some("auth"), "userinrole") {
-    def * = (userid, roleid, transactionid, systemstatusid) <> (UserinroleRow.tupled, UserinroleRow.unapply)
+    def * = (userinroleid, userid, roleid, transactionid, systemstatusid) <> (UserinroleRow.tupled, UserinroleRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (userid.?, roleid.?, transactionid, systemstatusid.?).shaped.<>({r=>import r._; _1.map(_=> UserinroleRow.tupled((_1.get, _2.get, _3, _4.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (userinroleid.?, userid.?, roleid.?, transactionid, systemstatusid.?).shaped.<>({r=>import r._; _1.map(_=> UserinroleRow.tupled((_1.get, _2.get, _3.get, _4, _5.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
     
+    /** Database column userinroleid PrimaryKey */
+    val userinroleid: Column[Int] = column[Int]("userinroleid", O.PrimaryKey)
     /** Database column userid  */
     val userid: Column[String] = column[String]("userid")
     /** Database column roleid  */
@@ -227,14 +230,6 @@ trait Tables {
     val transactionid: Column[Option[Int]] = column[Option[Int]]("transactionid")
     /** Database column systemstatusid  */
     val systemstatusid: Column[Int] = column[Int]("systemstatusid")
-    
-    /** Primary key of Userinrole (database name userinrole_pkey) */
-    val pk = primaryKey("userinrole_pkey", (userid, roleid))
-    
-    /** Foreign key referencing Role (database name fk_auth_user_roleid) */
-    lazy val roleFk = foreignKey("fk_auth_user_roleid", roleid, Role)(r => r.roleid, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
-    /** Foreign key referencing User (database name fk_auth_user_userid) */
-    lazy val userFk = foreignKey("fk_auth_user_userid", userid, User)(r => r.userid, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
   }
   /** Collection-like TableQuery object for table Userinrole */
   lazy val Userinrole = new TableQuery(tag => new Userinrole(tag))

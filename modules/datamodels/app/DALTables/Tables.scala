@@ -230,6 +230,11 @@ trait Tables {
     val transactionid: Column[Option[Int]] = column[Option[Int]]("transactionid")
     /** Database column systemstatusid  */
     val systemstatusid: Column[Int] = column[Int]("systemstatusid")
+    
+    /** Foreign key referencing Role (database name fk_auth_user_roleid) */
+    lazy val roleFk = foreignKey("fk_auth_user_roleid", roleid, Role)(r => r.roleid, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
+    /** Foreign key referencing User (database name fk_auth_user_userid) */
+    lazy val userFk = foreignKey("fk_auth_user_userid", userid, User)(r => r.userid, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
   }
   /** Collection-like TableQuery object for table Userinrole */
   lazy val Userinrole = new TableQuery(tag => new Userinrole(tag))
